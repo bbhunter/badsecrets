@@ -551,7 +551,8 @@ def test_carve_awsalb_no_false_shiro_identifyonly():
     results = carve_all_modules(cookies={"AWSALB": awsalb})
     if results:
         false_positives = [
-            r for r in results
+            r
+            for r in results
             if r["type"] == "IdentifyOnly"
             and r.get("detecting_module") in ("Shiro_RememberMe", "Peoplesoft_PSToken", "LTPA_Token")
         ]
