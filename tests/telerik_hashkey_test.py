@@ -72,7 +72,7 @@ def test_hashcat_command_correctness():
         assert cmds and len(cmds) == 1
 
         parts = cmds[0]["command"].split()
-        assert parts[2] == "1460", "mode must be 1460 (HMAC-SHA256 key=$pass)"
+        assert parts[2] == "1450", "mode must be 1450 (HMAC-SHA256 key=$pass)"
         hash_salt = parts[5]
         cmd_hmac_hex, cmd_msg_hex = hash_salt.split(":")
 
