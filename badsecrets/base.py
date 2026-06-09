@@ -35,7 +35,7 @@ class BadsecretsBase:
 
     check_secret_args = 1
     validate_carve = True
-    cookie_identify_only = True
+    report_uncracked_cookies = True
     carve_locations = ("headers", "cookies", "body")
 
     def __init__(self, custom_resource=None, **kwargs):
@@ -124,7 +124,7 @@ class BadsecretsBase:
                 if r:
                     r["type"] = "SecretFound"
                     r["product"] = v
-                elif self.validate_carve and self.cookie_identify_only and self.identify(v):
+                elif self.validate_carve and self.report_uncracked_cookies and self.identify(v):
                     r = {"type": "IdentifyOnly", "product": v, "hashcat": self._safe_hashcat(v)}
                 else:
                     continue

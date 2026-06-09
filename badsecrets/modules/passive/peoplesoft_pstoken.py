@@ -12,7 +12,7 @@ class Peoplesoft_PSToken(BadsecretsBase):
         r"^(?!eyJ)(?:[A-Za-z0-9+\/]{4}){8,}(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$"
     )
     description = {"product": "Peoplesoft PS_TOKEN", "secret": "Peoplesoft Secret", "severity": "HIGH"}
-    cookie_identify_only = False
+    report_uncracked_cookies = False
 
     def peoplesoft_load(self, PS_TOKEN_B64):
         PS_TOKEN = base64.b64decode(PS_TOKEN_B64)

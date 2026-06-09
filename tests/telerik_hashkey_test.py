@@ -62,8 +62,7 @@ def test_sign_enc_dialog_params():
 
 
 def test_hashcat_command_correctness():
-    """Validate that get_hashcat_commands produces a command whose hash:salt
-    matches the actual HMAC computation from check_secret."""
+    """Validate that get_hashcat_commands produces a crackable command."""
     x = Telerik_HashKey()
 
     for params, key in x.hashkey_probe_generator(include_machinekeys=False):
@@ -72,15 +71,18 @@ def test_hashcat_command_correctness():
         cmds = x.get_hashcat_commands(params)
         assert cmds and len(cmds) == 1
 
-        # hashcat 1450 format: hashcat -m 1450 -a 0 <hmac_hex>:<msg_hex> --hex-salt ...
         parts = cmds[0]["command"].split()
+        assert parts[2] == "1460", "mode must be 1460 (HMAC-SHA256 key=$pass)"
         hash_salt = parts[5]
         cmd_hmac_hex, cmd_msg_hex = hash_salt.split(":")
 
-        # Recompute the HMAC the same way check_secret does
         dp_enc, dp_hash = x.telerik_hashkey_load(params)
-        h = hmac.new(key.encode(), dp_enc, hashlib.sha256)
+        digest = bytes.fromhex(cmd_hmac_hex)
+        salt = bytes.fromhex(cmd_msg_hex)
 
-        assert cmd_hmac_hex == h.hexdigest(), "hashcat hash field must match the real HMAC digest"
-        assert cmd_msg_hex == dp_enc.hex(), "hashcat salt field must be the hex of the base64 message bytes"
+        assert salt == dp_enc, "salt field must be the base64 message bytes"
+        # mode 1460: HMAC(key=$pass, msg=$salt) — recovers the key
+        assert hmac.new(key.encode(), salt, hashlib.sha256).digest() == digest
+        # mode 1450: HMAC(key=$salt, msg=$pass) — does NOT recover the key
+        assert hmac.new(salt, key.encode(), hashlib.sha256).digest() != digest
         break

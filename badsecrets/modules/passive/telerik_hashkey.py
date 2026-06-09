@@ -66,7 +66,7 @@ class Telerik_HashKey(BadsecretsBase):
 
         return [
             {
-                "command": f"hashcat -m 1450 -a 0 {hmac_hex}:{msg_hex} --hex-salt <dictionary_file>",
+                "command": f"hashcat -m 1460 -a 0 {hmac_hex}:{msg_hex} --hex-salt <dictionary_file>",
                 "description": f"Telerik Hash Key Signature",
             }
         ]
