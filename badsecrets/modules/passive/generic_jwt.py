@@ -1,9 +1,12 @@
 import re
+import logging
 import warnings
 import jwt as j
 import json
 import base64
 from badsecrets.base import BadsecretsBase
+
+log = logging.getLogger(__name__)
 
 # XMLDSIG Translation Table
 
@@ -49,6 +52,9 @@ class Generic_JWT(BadsecretsBase):
                 r = j.decode(JWT, key, algorithms=[algorithm], options={"verify_exp": False})
             return r
         except j.exceptions.InvalidSignatureError:
+            return None
+        except j.exceptions.InvalidKeyError as e:
+            log.debug(f"Invalid key for JWT verification ({algorithm}): {e}")
             return None
 
     def jwtLoad(self, JWT):

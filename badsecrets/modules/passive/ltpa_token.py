@@ -24,9 +24,14 @@ def _des3_ecb_decrypt(key_24, data):
 
 
 class LTPA_Token(BadsecretsBase):
-    # Base64 pattern — LTPA tokens are typically 100+ bytes base64-encoded
-    identify_regex = re.compile(r"^(?:[A-Za-z0-9+/]{4}){16,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")
+    # Base64 pattern — LTPA tokens are typically 100+ bytes base64-encoded.
+    # The negative lookahead excludes `eyJ`-prefixed values (Laravel-encrypted
+    # cookies, JWTs, Flask sessions) which are AES-encrypted random bytes for
+    # LTPA but always start with `eyJ` (base64 of `{"`) for the JSON-shaped
+    # formats; this prevents cross-module false positives.
+    identify_regex = re.compile(r"^(?!eyJ)(?:[A-Za-z0-9+/]{4}){16,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")
     description = {"product": "IBM WebSphere LTPA", "secret": "LTPA Encryption Key", "severity": "HIGH"}
+    report_uncracked_cookies = False
     carve_locations = ("cookies",)
 
     def __init__(self, custom_resource=None, **kwargs):

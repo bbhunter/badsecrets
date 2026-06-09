@@ -1,12 +1,18 @@
+import re
 import zlib
 import base64
 import hashlib
-from badsecrets.base import BadsecretsBase, generic_base64_regex
+from badsecrets.base import BadsecretsBase
 
 
 class Peoplesoft_PSToken(BadsecretsBase):
-    identify_regex = generic_base64_regex
+    # Long base64; exclude the `eyJ` prefix so this doesn't fire on Laravel /
+    # JWT / Flask cookies which all start with base64(`{"`).
+    identify_regex = re.compile(
+        r"^(?!eyJ)(?:[A-Za-z0-9+\/]{4}){8,}(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$"
+    )
     description = {"product": "Peoplesoft PS_TOKEN", "secret": "Peoplesoft Secret", "severity": "HIGH"}
+    report_uncracked_cookies = False
 
     def peoplesoft_load(self, PS_TOKEN_B64):
         PS_TOKEN = base64.b64decode(PS_TOKEN_B64)

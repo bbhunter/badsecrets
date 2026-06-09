@@ -1,3 +1,5 @@
+import hmac
+import hashlib
 import urllib.parse
 from badsecrets import modules_loaded
 
@@ -57,3 +59,30 @@ def test_sign_enc_dialog_params():
 
     assert r
     assert r["secret"] == test_hashkey
+
+
+def test_hashcat_command_correctness():
+    """Validate that get_hashcat_commands produces a crackable command."""
+    x = Telerik_HashKey()
+
+    for params, key in x.hashkey_probe_generator(include_machinekeys=False):
+        assert x.check_secret(params), "probe should be crackable"
+
+        cmds = x.get_hashcat_commands(params)
+        assert cmds and len(cmds) == 1
+
+        parts = cmds[0]["command"].split()
+        assert parts[2] == "1450", "mode must be 1450 (HMAC-SHA256 key=$pass)"
+        hash_salt = parts[5]
+        cmd_hmac_hex, cmd_msg_hex = hash_salt.split(":")
+
+        dp_enc, dp_hash = x.telerik_hashkey_load(params)
+        digest = bytes.fromhex(cmd_hmac_hex)
+        salt = bytes.fromhex(cmd_msg_hex)
+
+        assert salt == dp_enc, "salt field must be the base64 message bytes"
+        # mode 1450: HMAC(key=$pass, msg=$salt) — recovers the key
+        assert hmac.new(key.encode(), salt, hashlib.sha256).digest() == digest
+        # mode 1460: HMAC(key=$salt, msg=$pass) — does NOT recover the key
+        assert hmac.new(salt, key.encode(), hashlib.sha256).digest() != digest
+        break

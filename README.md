@@ -242,18 +242,9 @@ Secret: fake123
 Details: {'sub': '1234567890', 'name': 'John Doe', 'iat': 1516239022, 'jwt_headers': {'alg': 'HS256', 'typ': 'JWT'}}
 ```
 
-### blacklist3r.py
+### blacklist3r.py (removed)
 
-*Note: This is now obsolete, since `cli.py` is now capable of handling machinekeys/generator values. It will remain included for reference.*
-*Example: `badsecrets KLox5XeGYfb7Lo8zFzr1YepUagXuixcxX55lpFht+rrW6VGheZi831vdusH6DCMfxIhsLG1EPU3OuPvqN2XBc/fj0ew15TQ1zBmmKWJVns4= AAAAAAAA`*
-
-Bad secrets includes a [fully functional CLI example](https://github.com/blacklanternsecurity/badsecrets/blob/dev/badsecrets/examples/blacklist3r.py) which replicates the functionality of [blacklist3r](https://github.com/NotSoSecure/Blacklist3r) in python badsecrets/examples/blacklist3r. 
-
-
-```bash
-python ./badsecrets/examples/blacklist3r.py --url http://vulnerablesite/vulnerablepage.aspx
-python ./badsecrets/examples/blacklist3r.py --viewstate /wEPDwUJODExMDE5NzY5ZGQMKS6jehX5HkJgXxrPh09vumNTKQ== --generator EDD8C9AE
-```
+The standalone `blacklist3r.py` tool has been **deprecated and removed**. The capabilities in the main badsecrets viewstate modules now far surpass what the standalone tool offered, and it had become a maintenance burden. Use the main `badsecrets` CLI (or the `aspnet_viewstate` module directly) for ASP.NET viewstate / machine key analysis.
 
 ### telerik_knownkey.py
 
@@ -324,6 +315,12 @@ bbot -f subdomain-enum -m badsecrets -t evil.corp
 
 ![badsecrets](https://user-images.githubusercontent.com/24899338/227044294-59e0408e-c55f-481a-a494-7ee5dd0a39be.png)
 
+## Docker
+
+```bash
+docker build -t badsecrets .
+docker run -t badsecrets <args>
+```
 
 ### Basic library usage
 
@@ -525,17 +522,19 @@ else:
 ```
 
 #### Carve
-An additional layer of abstraction above check_secret, which accepts an httpx.Response object or a string
+An additional layer of abstraction above check_secret, which accepts an HTTP response object (e.g. blasthttp) or raw body/cookies/headers
 
 ```python
-import httpx
+import asyncio
+from blasthttp import BlastHTTP
 from badsecrets import modules_loaded
 Telerik_HashKey = modules_loaded["telerik_hashkey"]
 
 x = Telerik_HashKey()
 
-res = httpx.get("http://example.com/")
-r_list = x.carve(httpx_response=res)
+client = BlastHTTP()
+res = asyncio.run(client.request("http://example.com/"))
+r_list = x.carve(http_response=res)
 print(r_list)
 
 telerik_dialogparameters_sample = """
@@ -567,9 +566,10 @@ tests = [
 ]
 
 for test in tests:
-    r = check_all_modules(test)
-    if r:
-        print(r)
+    results = check_all_modules(test)
+    if results:
+        for r in results:
+            print(f"[{r['type']}] {r['detecting_module']}: {r['description']}")
     else:
         print("Key not found!")
 ```
@@ -577,13 +577,15 @@ for test in tests:
 
 ### Carve all modules at once
 ```python
-import httpx
+import asyncio
+from blasthttp import BlastHTTP
 from badsecrets.base import carve_all_modules
 
-### using httpx response object
+### using http response object
 
-res = httpx.get("http://example.com/")
-r_list = carve_all_modules(httpx_response=res)
+client = BlastHTTP()
+res = asyncio.run(client.request("http://example.com/"))
+r_list = carve_all_modules(http_response=res)
 print(r_list)
 
 ### Using string
