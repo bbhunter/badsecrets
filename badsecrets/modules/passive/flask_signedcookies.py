@@ -8,7 +8,6 @@ from badsecrets.base import BadsecretsBase
 class Flask_SignedCookies(BadsecretsBase):
     identify_regex = re.compile(r"\.?e[Jy](?:[\w-]*\.)(?:[\w-]*\.)[\w-]*")
     description = {"product": "Flask Signed Cookie", "secret": "Flask Password", "severity": "HIGH"}
-    report_uncracked_cookies = False
     carve_locations = ("cookies",)
 
     def check_secret(self, flask_cookie):
