@@ -522,17 +522,19 @@ else:
 ```
 
 #### Carve
-An additional layer of abstraction above check_secret, which accepts an httpx.Response object or a string
+An additional layer of abstraction above check_secret, which accepts an HTTP response object (e.g. blasthttp) or raw body/cookies/headers
 
 ```python
-import httpx
+import asyncio
+from blasthttp import BlastHTTP
 from badsecrets import modules_loaded
 Telerik_HashKey = modules_loaded["telerik_hashkey"]
 
 x = Telerik_HashKey()
 
-res = httpx.get("http://example.com/")
-r_list = x.carve(httpx_response=res)
+client = BlastHTTP()
+res = asyncio.run(client.request("http://example.com/"))
+r_list = x.carve(http_response=res)
 print(r_list)
 
 telerik_dialogparameters_sample = """
@@ -564,9 +566,10 @@ tests = [
 ]
 
 for test in tests:
-    r = check_all_modules(test)
-    if r:
-        print(r)
+    results = check_all_modules(test)
+    if results:
+        for r in results:
+            print(f"[{r['type']}] {r['detecting_module']}: {r['description']}")
     else:
         print("Key not found!")
 ```
@@ -574,13 +577,15 @@ for test in tests:
 
 ### Carve all modules at once
 ```python
-import httpx
+import asyncio
+from blasthttp import BlastHTTP
 from badsecrets.base import carve_all_modules
 
-### using httpx response object
+### using http response object
 
-res = httpx.get("http://example.com/")
-r_list = carve_all_modules(httpx_response=res)
+client = BlastHTTP()
+res = asyncio.run(client.request("http://example.com/"))
+r_list = carve_all_modules(http_response=res)
 print(r_list)
 
 ### Using string

@@ -526,3 +526,34 @@ def test_check_all_modules_identifyonly_no_match():
     # A short garbage string matches no identify_regex
     r = check_all_modules("totally-unrelated-value")
     assert r is None
+
+
+def test_carve_malformed_rack2_cookie_no_crash():
+    """A Rack2-shaped cookie with bad base64 padding must not crash carve_all_modules."""
+    from badsecrets.base import carve_all_modules
+
+    clipped = (
+        "BAh7B0kiD3Nlc3Npb25faWQGOgZFVG86HVJhY2s6OlNlc3Npb246OlNlc3Npb25JZAY6D0BwdWJsaWNf"
+        "aWRJIkU5YmI3ZDUyODUyNTAwMDYzMGE2NjMxYTA5MjBlMjYzMzFmOGE0MjBhNTdhYWIxNzVkZTFmM2Fj"
+        "MDQ3NmI1NDQzBjsARkkiCmNvdW50BjsARmkG--3a983fbc58911c5266d7748a6a55165f74d412f"
+    )
+    results = carve_all_modules(cookies={"rack.session": clipped})
+    assert isinstance(results, list) or results is None
+
+
+def test_carve_awsalb_no_false_shiro_identifyonly():
+    """An ordinary AWSALB cookie must not produce Shiro/PeopleSoft/LTPA IdentifyOnly."""
+    import base64
+    import os
+    from badsecrets.base import carve_all_modules
+
+    awsalb = base64.b64encode(os.urandom(96)).decode()
+    results = carve_all_modules(cookies={"AWSALB": awsalb})
+    if results:
+        false_positives = [
+            r
+            for r in results
+            if r["type"] == "IdentifyOnly"
+            and r.get("detecting_module") in ("Shiro_RememberMe", "Peoplesoft_PSToken", "LTPA_Token")
+        ]
+        assert not false_positives, f"unexpected false IdentifyOnly hits: {false_positives}"

@@ -57,14 +57,16 @@ class Telerik_HashKey(BadsecretsBase):
             return None
 
         try:
-            dp_enc_decoded = base64.b64decode(dp_hash)
-            dp_hash_decoded = base64.b64decode(dp_enc)
+            hmac_hex = base64.b64decode(dp_hash).hex()
+            base64.b64decode(dp_enc)
         except binascii.Error:
             return None
 
+        msg_hex = dp_enc.hex()
+
         return [
             {
-                "command": f"hashcat -m 1450 -a 0 {dp_enc_decoded.hex()}:{dp_hash_decoded.hex()} --hex-salt <dictionary_file>",
+                "command": f"hashcat -m 1450 -a 0 {hmac_hex}:{msg_hex} --hex-salt <dictionary_file>",
                 "description": f"Telerik Hash Key Signature",
             }
         ]
