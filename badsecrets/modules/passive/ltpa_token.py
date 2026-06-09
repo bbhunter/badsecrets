@@ -31,6 +31,7 @@ class LTPA_Token(BadsecretsBase):
     # formats; this prevents cross-module false positives.
     identify_regex = re.compile(r"^(?!eyJ)(?:[A-Za-z0-9+/]{4}){16,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")
     description = {"product": "IBM WebSphere LTPA", "secret": "LTPA Encryption Key", "severity": "HIGH"}
+    cookie_identify_only = False
     carve_locations = ("cookies",)
 
     def __init__(self, custom_resource=None, **kwargs):

@@ -1,3 +1,5 @@
+import hmac
+import hashlib
 import urllib.parse
 from badsecrets import modules_loaded
 
@@ -57,3 +59,28 @@ def test_sign_enc_dialog_params():
 
     assert r
     assert r["secret"] == test_hashkey
+
+
+def test_hashcat_command_correctness():
+    """Validate that get_hashcat_commands produces a command whose hash:salt
+    matches the actual HMAC computation from check_secret."""
+    x = Telerik_HashKey()
+
+    for params, key in x.hashkey_probe_generator(include_machinekeys=False):
+        assert x.check_secret(params), "probe should be crackable"
+
+        cmds = x.get_hashcat_commands(params)
+        assert cmds and len(cmds) == 1
+
+        # hashcat 1450 format: hashcat -m 1450 -a 0 <hmac_hex>:<msg_hex> --hex-salt ...
+        parts = cmds[0]["command"].split()
+        hash_salt = parts[5]
+        cmd_hmac_hex, cmd_msg_hex = hash_salt.split(":")
+
+        # Recompute the HMAC the same way check_secret does
+        dp_enc, dp_hash = x.telerik_hashkey_load(params)
+        h = hmac.new(key.encode(), dp_enc, hashlib.sha256)
+
+        assert cmd_hmac_hex == h.hexdigest(), "hashcat hash field must match the real HMAC digest"
+        assert cmd_msg_hex == dp_enc.hex(), "hashcat salt field must be the hex of the base64 message bytes"
+        break

@@ -35,6 +35,7 @@ class BadsecretsBase:
 
     check_secret_args = 1
     validate_carve = True
+    cookie_identify_only = True
     carve_locations = ("headers", "cookies", "body")
 
     def __init__(self, custom_resource=None, **kwargs):
@@ -67,6 +68,13 @@ class BadsecretsBase:
 
     def get_hashcat_commands(self, s):
         return None
+
+    def _safe_hashcat(self, product):
+        try:
+            return self.get_hashcat_commands(product)
+        except Exception:
+            log.debug(f"{type(self).__name__}.get_hashcat_commands() failed for product value", exc_info=True)
+            return None
 
     def load_resources(self, resource_list):
         filepaths = []
@@ -116,8 +124,8 @@ class BadsecretsBase:
                 if r:
                     r["type"] = "SecretFound"
                     r["product"] = v
-                elif self.validate_carve and self.identify(v):
-                    r = {"type": "IdentifyOnly", "product": v, "hashcat": self.get_hashcat_commands(v)}
+                elif self.validate_carve and self.cookie_identify_only and self.identify(v):
+                    r = {"type": "IdentifyOnly", "product": v, "hashcat": self._safe_hashcat(v)}
                 else:
                     continue
                 r["location"] = "cookies"
@@ -143,7 +151,7 @@ class BadsecretsBase:
                             # the carve regex hit but no secret was found
                             else:
                                 r = {"type": "IdentifyOnly"}
-                                r["hashcat"] = self.get_hashcat_commands(s.groups()[0])
+                                r["hashcat"] = self._safe_hashcat(s.groups()[0])
                             if "product" not in r:
                                 r["product"] = self.get_product_from_carve(s)
                             r["location"] = "headers"
@@ -192,7 +200,7 @@ class BadsecretsBase:
                         r["type"] = "SecretFound"
                     else:
                         r = {"type": "IdentifyOnly"}
-                        r["hashcat"] = self.get_hashcat_commands(s.groups()[0])
+                        r["hashcat"] = self._safe_hashcat(s.groups()[0])
                     if "product" not in r:
                         r["product"] = self.get_product_from_carve(s)
                     r["location"] = "body"

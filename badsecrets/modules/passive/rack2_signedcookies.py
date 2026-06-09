@@ -6,8 +6,8 @@ from urllib.parse import unquote
 
 
 class Rack2_SignedCookies(BadsecretsBase):
-    identify_regex = re.compile(r"^BAh[\.a-zA-z-0-9\%=]{32,}--[\.a-zA-z-0-9%=]{16,}$")
-    yara_carve_pattern = r"session=BAh[\.a-zA-z\-0-9\%=]{32,500}--[\.a-zA-z\-0-9%=]{16,}"
+    identify_regex = re.compile(r"^BAh[\.a-zA-Z-0-9\%=]{32,}--[\.a-zA-Z-0-9%=]{16,}$")
+    yara_carve_pattern = r"session=BAh[\.a-zA-Z\-0-9\%=]{32,500}--[\.a-zA-Z\-0-9%=]{16,}"
     description = {
         "product": "Rack 2.x Signed Cookie (Ruby Serialized Object)",
         "secret": "Rack 2.x secret key",
@@ -16,7 +16,7 @@ class Rack2_SignedCookies(BadsecretsBase):
     carve_locations = ("cookies",)
 
     def carve_regex(self):
-        return re.compile(r"session=(BAh[\.a-zA-z-0-9\%=]{32,}--[\.a-zA-z-0-9%=]{16,})")
+        return re.compile(r"session=(BAh[\.a-zA-Z-0-9\%=]{32,}--[\.a-zA-Z-0-9%=]{16,})")
 
     def rack2(self, rack_cookie, secret_key):
         # Split the cookie into data and signature
@@ -50,9 +50,13 @@ class Rack2_SignedCookies(BadsecretsBase):
 
     def get_hashcat_commands(self, rack_cookie, *args):
         rack_cookie_split = rack_cookie.rsplit("--", 1)
+        try:
+            data_hex = base64.b64decode(unquote(rack_cookie_split[0])).hex()
+        except Exception:
+            return None
         return [
             {
-                "command": f"hashcat -m 150 -a 0 {rack_cookie_split[1]}:{base64.b64decode(unquote(rack_cookie_split[0])).hex()} --hex-salt  <dictionary_file>",
+                "command": f"hashcat -m 150 -a 0 {rack_cookie_split[1]}:{data_hex} --hex-salt  <dictionary_file>",
                 "description": "Rack 2.x Signed Cookie (HMAC-SHA1)",
             }
         ]

@@ -15,6 +15,7 @@ class Shiro_RememberMe(BadsecretsBase):
     # AES-encrypted random bytes and don't legitimately start with `eyJ`.
     identify_regex = re.compile(r"^(?!eyJ)(?:[A-Za-z0-9+/]{4}){11,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")
     description = {"product": "Apache Shiro", "secret": "RememberMe AES Key", "severity": "CRITICAL"}
+    cookie_identify_only = False
     carve_locations = ("cookies",)
 
     def check_secret(self, cookie_value):
