@@ -81,8 +81,8 @@ def test_hashcat_command_correctness():
         salt = bytes.fromhex(cmd_msg_hex)
 
         assert salt == dp_enc, "salt field must be the base64 message bytes"
-        # mode 1460: HMAC(key=$pass, msg=$salt) — recovers the key
+        # mode 1450: HMAC(key=$pass, msg=$salt) — recovers the key
         assert hmac.new(key.encode(), salt, hashlib.sha256).digest() == digest
-        # mode 1450: HMAC(key=$salt, msg=$pass) — does NOT recover the key
+        # mode 1460: HMAC(key=$salt, msg=$pass) — does NOT recover the key
         assert hmac.new(salt, key.encode(), hashlib.sha256).digest() != digest
         break
