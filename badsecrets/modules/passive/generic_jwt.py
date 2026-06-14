@@ -49,7 +49,12 @@ class Generic_JWT(BadsecretsBase):
         try:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=j.warnings.InsecureKeyLengthWarning)
-                r = j.decode(JWT, key, algorithms=[algorithm], options={"verify_exp": False})
+                r = j.decode(
+                    JWT,
+                    key,
+                    algorithms=[algorithm],
+                    options={"verify_exp": False, "verify_aud": False, "verify_nbf": False},
+                )
             return r
         except j.exceptions.InvalidSignatureError:
             return None
