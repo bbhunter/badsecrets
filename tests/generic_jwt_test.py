@@ -45,6 +45,33 @@ def test_generic_jwt_xmldsig():
     assert found_key
 
 
+def test_generic_jwt_hmac_with_aud():
+    x = Generic_JWT()
+    found_key = x.check_secret(
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiYXVkIjoibXktYXBwIiwicm9sZSI6ImFkbWluIn0.t9-1JUdynKdC1ZBGxtj70ySnD-0npSocNUVXmqo2-8s"
+    )
+    assert found_key
+    assert found_key["secret"] == "1234"
+
+
+def test_generic_jwt_hmac_with_iss():
+    x = Generic_JWT()
+    found_key = x.check_secret(
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiaXNzIjoiZXZpbC1jb3JwIiwicm9sZSI6ImFkbWluIn0.VR43bXZc6k5ZAZwp4mRr-D18NkQ8EN9D46EQsV8Vazw"
+    )
+    assert found_key
+    assert found_key["secret"] == "1234"
+
+
+def test_generic_jwt_hmac_with_nbf():
+    x = Generic_JWT()
+    found_key = x.check_secret(
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwibmJmIjo5OTk5OTk5OTk5LCJyb2xlIjoiYWRtaW4ifQ.aZlX94Q-6bOXZHARHTEMqVZZKz0kmQ4XEZziz6rh9vw"
+    )
+    assert found_key
+    assert found_key["secret"] == "1234"
+
+
 def test_generic_jwt_loadfail():
     x = Generic_JWT()
     found_key = x.check_secret(
