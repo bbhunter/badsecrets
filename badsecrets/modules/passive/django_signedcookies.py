@@ -4,7 +4,7 @@ from badsecrets.base import BadsecretsBase
 
 
 class DjangoSignedCookies(BadsecretsBase):
-    identify_regex = re.compile(r"^[\.a-zA-Z_\-0-9]+:[\.a-zA-Z_\-0-9:]+$")
+    identify_regex = re.compile(r"^\.?[a-zA-Z0-9_-]+(?::[a-zA-Z0-9_-]{4,8})?:[a-zA-Z0-9_-]{27,}$")
     description = {"product": "Django Signed Cookie", "secret": "Django secret_key", "severity": "HIGH"}
     carve_locations = ("cookies",)
 

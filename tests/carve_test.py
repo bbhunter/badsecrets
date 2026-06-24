@@ -445,8 +445,9 @@ def test_carve_cookies_identifyonly_laravel():
 
 
 def test_carve_cookies_identifyonly_django():
-    # Django session cookie format: encoded:signature1:signature2 — matches
-    # ^[\.a-zA-z-0-9]+:[\.a-zA-z-0-9:]+$ but uses a key that isn't in the wordlist.
+    # Django session cookie format: payload:timestamp:signature — matches
+    # identify_regex (signature is a 27+ char base64url HMAC) but uses a key
+    # that isn't in the wordlist.
     _identify_only_fallback(
         Django_SignedCookies,
         "sessionid",
