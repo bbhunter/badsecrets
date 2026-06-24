@@ -24,3 +24,12 @@ def test_django_negative():
         ".eJxVjLsOAiEURP-F2hAuL8HSfr-BAPciq4ZNlt3K-O9KsoU2U8w5My8W4r7VsHdaw4zswoCdfrsU84PaAHiP7bbwvLRtnRMfCj9o59OC9Lwe7t9Bjb2OtbMkAEGQtQjekykmJy9JZIW-6CgUaCGsA6eSyV65s1Qya_xGKZrY-wPVYjdw:1ojOrE:bfOktjgLlUykwCBADSECRETSMM3-UypscEN57ECtXis"
     )
     assert not found_key
+
+
+def test_django_identify_false_positives():
+    x = DjangoSignedCookies()
+    assert not x.identify("abc:def")
+    assert not x.identify("a:b")
+    assert not x.identify("0000Qs-hTQlwlgXAYBlmgEFoQTR:1ffkg4vkm")
+    assert not x.identify("test:1234")
+    assert not x.identify("JSESSIONID:abcdef1234")
